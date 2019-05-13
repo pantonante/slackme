@@ -29,13 +29,17 @@ type Message struct {
 	Text string `json:"text"`
 }
 
-// messageCmd represents the message command
+var channel string
+
 var messageCmd = &cobra.Command{
 	Use:   "message",
-	Short: "Send a message to your Slack Channel",
+	Short: "Send a message to your Slack channel",
 	Args:  cobra.MinimumNArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		url := viper.GetString("default")
+		url := viper.GetString(channel)
+		if url == "" {
+			return errors.New("Channel name is invalid")
+		}
 		message := &Message{Text: strings.Join(args, " ")}
 		payload, err := json.Marshal(message)
 		if err != nil {
@@ -49,14 +53,5 @@ var messageCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(messageCmd)
-
-	// Here you will define your flags and configuration settings.
-
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// messageCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// messageCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	messageCmd.Flags().StringVarP(&channel, "channel", "c", "default", "Channel name where to send the message (match your .slackme.yaml file)")
 }
